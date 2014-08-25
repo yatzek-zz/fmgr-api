@@ -1,1 +1,1 @@
-web: web
+web: fmgr-api
