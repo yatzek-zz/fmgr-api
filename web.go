@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	agent := newRelicAgent()
 	http.HandleFunc("/", agent.WrapHTTPHandlerFunc(handler))
 
@@ -25,7 +24,7 @@ func newRelicAgent() (*gorelic.Agent) {
 	agent.Verbose = true
 	agent.NewrelicName = "fmgr-api"
 	agent.CollectHTTPStat = true
-	agent.NewrelicLicense = "4ea69fc41f601a44712b071ab214352bd00087d4"
+	agent.NewrelicLicense = "6250f7427b4873ef4ece6aba345e4801aa690ec8"
 	agent.Run()
 	return agent
 }
