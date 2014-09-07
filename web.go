@@ -67,6 +67,9 @@ func initDb() *gorp.DbMap {
 	db, err := sql.Open("postgres", connectionUrl())
 	checkErr(err, "sql.Open failed")
 
+	db.SetMaxIdleConns(10)
+	db.SetMaxOpenConns(100)
+
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 	dbmap.AddTableWithName(Player{}, "players").SetKeys(true, "Id")
 
