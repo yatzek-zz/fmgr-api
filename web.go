@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
 
 	"github.com/coopernurse/gorp"
@@ -20,30 +20,45 @@ type Player struct {
 	Email   string `json:"email"`
 }
 
+
 func main() {
+	dbmap := initDb()
+	defer dbmap.Db.Close()
+
 	newrelic := newRelicAgent()
-	http.HandleFunc("/players", newrelic.WrapHTTPHandlerFunc(playersHandleFunc))
+
+	dbHandler := &DbHandler{dbmap: dbmap}
+
+	http.HandleFunc("/availability", newrelic.WrapHTTPHandlerFunc(dbHandler.availabilityFunc))
+	http.HandleFunc("/players", newrelic.WrapHTTPHandlerFunc(dbHandler.playersHandleFunc))
 
 	port := os.Getenv("PORT")
 	fmt.Println("Listening on port:" + port)
-	err := http.ListenAndServe(":" + port, nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func playersHandleFunc(res http.ResponseWriter, req *http.Request) {
-	jzon, err := json.Marshal(getPlayers())
+type DbHandler struct {
+	dbmap *gorp.DbMap
+}
+
+func (h *DbHandler) playersHandleFunc(res http.ResponseWriter, _ *http.Request) {
+	jzon, err := json.Marshal(h.getPlayers())
 	checkErr(err, "Serialization of players into json failed")
 	fmt.Fprintln(res, string(jzon))
 }
 
-func getPlayers() []Player {
-	dbmap := initDb()
-	defer dbmap.Db.Close()
+func (h *DbHandler) availabilityFunc(res http.ResponseWriter, _ *http.Request) {
+	error := h.dbmap.Db.Ping()
+	checkErr(error, "Error connecting to database")
+	fmt.Fprintln(res, string("OK"))
+}
 
+func (h *DbHandler) getPlayers() []Player {
 	var players []Player
-	_, err := dbmap.Select(&players, "select id, name, surname, email from players order by id")
+	_, err := h.dbmap.Select(&players, "select id, name, surname, email from players order by id")
 	checkErr(err, "Select failed")
 	return players
 }
