@@ -1,1 +1,16 @@
 Availability monitoring with New Relic
+refactor main under cmd folder
+
+wrap db with your own db, add db related methods to it
+
+type DB struct {
+    *sql.DB
+}
+
+more here:
+https://medium.com/@benbjohnson/structuring-applications-in-go-3b04be4ff091
+
+consider using GORM instead of GORP
+
+testing (db stuff as well):
+https://medium.com/@benbjohnson/structuring-tests-in-go-46ddee7a25c
